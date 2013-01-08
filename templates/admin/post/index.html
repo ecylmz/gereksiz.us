@@ -1,0 +1,19 @@
+<form class="form-horizontal" action="/admin/post/" method="POST">
+  <fieldset>
+    <legend>Manage Post</legend>
+    <div class="control-group">
+      <label class="control-label" for="Sequence">Sequence</label>
+      <div class="controls">
+	<input type="text" class="input-xlarge" name="Sequence" id="Sequence">
+      </div>
+    </div>
+
+    <hr \>
+
+    <div class="form-actions">
+      <button type="submit" class="btn btn-primary">Manage</button>
+      <button class="btn">Cancel</button>
+    </div>
+  </fieldset>
+  <input type="hidden" name="CSRFToken" value="{{$.CSRFToken}}">
+</form>

@@ -1,0 +1,21 @@
+<form class="form-horizontal" action="/admin/post/edit/{{.Post.Sequence}}" 
+  method="POST">
+  <fieldset>
+    <legend>Edit Post</legend>
+    <div class="control-group">
+      <label class="control-label" for="Content">Content</label>
+      <div class="controls">
+	<textarea class="textarea" name="ContentString" id="ContentString" 
+	  style="width:300px; height: 200px">{{.Post.ContentString}}</textarea>
+      </div>
+    </div>
+
+    <hr \>
+
+    <div class="form-actions">
+      <button type="submit" class="btn btn-primary">Update</button>
+      <button class="btn">Cancel</button>
+    </div>
+  </fieldset>
+  <input type="hidden" name="CSRFToken" value="{{$.CSRFToken}}">
+</form>

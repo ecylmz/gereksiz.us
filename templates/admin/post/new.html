@@ -1,0 +1,20 @@
+<form class="form-horizontal" action="/admin/post/new/" method="POST">
+  <fieldset>
+    <legend>New Post</legend>
+    <div class="control-group">
+      <label class="control-label" for="Content">Content</label>
+      <div class="controls">
+	<textarea class="textarea" name="Content" id="Content" 
+      style="width:300px; height: 200px" placeholder="Content..."></textarea>
+      </div>
+    </div>
+
+    <hr \>
+
+    <div class="form-actions">
+      <button type="submit" class="btn btn-primary">Create</button>
+      <button class="btn">Cancel</button>
+    </div>
+  </fieldset>
+  <input type="hidden" name="CSRFToken" value="{{$.CSRFToken}}">
+</form>
