@@ -24,6 +24,11 @@ type Post struct {
 	ContentString string `datastore:"-"`
 }
 
+type Counter struct {
+	Count int64
+}
+
+
 func init() {
 	http.HandleFunc("/", root)
 }
@@ -62,6 +67,30 @@ func getPost(w http.ResponseWriter, r *http.Request, Seq int) Post {
 	return nilPost
 }
 
+func getCount(w http.ResponseWriter, r *http.Request) int64 {
+	cachedItem, cacheStatus := cache.GetCache(r, "Counter")
+	if cacheStatus == true {
+		var counter Counter
+		buffCount := bytes.NewBuffer(cachedItem)
+		decCount  := gob.NewDecoder(buffCount)
+		decCount.Decode(&counter)
+		return counter.Count
+	}
+
+	c := appengine.NewContext(r)
+	var counter Counter
+	key := datastore.NewKey(c, "Counter", "", 1, nil)
+	datastore.Get(c, key, &counter)
+
+	// Add Cache
+	mCount := new(bytes.Buffer)
+	encCount := gob.NewEncoder(mCount)
+	encCount.Encode(counter)
+	cache.AddCache(r, "Counter", mCount.Bytes())
+
+	return counter.Count
+}
+
 func root(w http.ResponseWriter, r *http.Request) {
 	var postSeq int
 	trimPath := strings.Trim(r.URL.Path, "/g/")
@@ -70,10 +99,8 @@ func root(w http.ResponseWriter, r *http.Request) {
 	if trimPath != "" && err == nil {
 		postSeq = arg
 	} else {
-		c := appengine.NewContext(r)
-		qP := datastore.NewQuery("Post")
-		PostCount, _ := qP.Count(c)
-		postSeq = randInt(1, PostCount + 1)
+		counter := getCount(w, r)
+		postSeq = randInt(1, int(counter))
 	}
 
 	post := getPost(w, r, postSeq)

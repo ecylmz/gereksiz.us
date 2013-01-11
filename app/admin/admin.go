@@ -15,12 +15,17 @@ import (
 	"strconv"
 	"fmt"
 	"library/cache"
+	"encoding/gob"
 )
 
 type Post struct {
 	Sequence    int64
 	Content     []byte
 	ContentString string `datastore:"-"`
+}
+
+type Counter struct {
+	Count int64
 }
 
 func init() {
@@ -30,6 +35,7 @@ func init() {
 	http.HandleFunc("/admin/post/", managePosts)
 	http.HandleFunc("/admin/post/edit/", editPost)
 	http.HandleFunc("/admin/post/new/", newPost)
+	// http.HandleFunc("/admin/countLoad", countLoad)
 }
 
 func login(w http.ResponseWriter, r *http.Request) {
@@ -130,34 +136,65 @@ func editPost(w http.ResponseWriter, r *http.Request) {
 	}
 }
 
-func getLatestSeq(w http.ResponseWriter, r *http.Request) int64 {
-	c := appengine.NewContext(r)
-
-	var p []Post
-
-	q := datastore.NewQuery("Post")
-	Pq,_ := q.Count(c)
-	q1 := datastore.NewQuery("Post").Filter("Sequence=", int64(Pq))
-	q1.GetAll(c, &p)
-	if p != nil {
-		post := p[0]
-		return post.Sequence
+func getCount(w http.ResponseWriter, r *http.Request) int64 {
+	cachedItem, cacheStatus := cache.GetCache(r, "Counter")
+	if cacheStatus == true {
+		var counter Counter
+		buffCount := bytes.NewBuffer(cachedItem)
+		decCount := gob.NewDecoder(buffCount)
+		decCount.Decode(&counter)
+		return counter.Count
 	}
+
+	c := appengine.NewContext(r)
+	var counter Counter
+	key := datastore.NewKey(c, "Counter", "", 1, nil)
+	datastore.Get(c, key, &counter)
+
+	if counter.Count == 0 {
+		// AddCache
+		mCount := new(bytes.Buffer)
+		encCount := gob.NewEncoder(mCount)
+		encCount.Encode(counter)
+		cache.AddCache(r, "Counter", mCount.Bytes())
+
+		return counter.Count
+	}
+
 	return 0
 }
+
+// func countLoad(w http.ResponseWriter, r *http.Request) {
+// 	c := appengine.NewContext(r)
+// 	keyC := datastore.NewKey(c, "Counter", "", 1, nil)
+// 	var counter Counter
+// 	counter.Count = 127
+// 	datastore.Put(c, keyC, &counter)
+// }
 
 func newPost(w http.ResponseWriter, r *http.Request) {
 	c := appengine.NewContext(r)
 
-	var post Post
-	keyP := datastore.NewIncompleteKey(c, "Post", nil)
-
 	if csrf.ValidateToken(r, r.FormValue("CSRFToken")) {
 		if r.Method == "POST" {
+			var post Post
+			keyP := datastore.NewIncompleteKey(c, "Post", nil)
+			var counter Counter
+			keyC := datastore.NewKey(c, "Counter", "", 1, nil)
+			datastore.Get(c, keyC, &counter)
+			counter.Count = counter.Count + 1
+
+			// Add Cache Counter
+			mCount := new(bytes.Buffer)
+			encCount := gob.NewEncoder(mCount)
+			encCount.Encode(counter)
+			cache.AddCache(r, "Counter", mCount.Bytes())
+
 			c := appengine.NewContext(r)
 			post.Content = []byte(r.FormValue("Content"))
-			post.Sequence = getLatestSeq(w,r) + 1
+			post.Sequence = counter.Count
 			datastore.Put(c, keyP, &post)
+			datastore.Put(c, keyC, &counter)
 		}
 	}
 

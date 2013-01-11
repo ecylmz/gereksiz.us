@@ -2,14 +2,14 @@ package cache
 
 import (
 	"appengine"
-	"appengine/datastore"
+	// "appengine/datastore"
 	"appengine/memcache"
 	"net/http"
 )
 
-type Cache struct {
-	Cached []byte
-}
+// type Cache struct {
+// 	Cached []byte
+// }
 
 /*
  * This function will save the data in the memcache and the datastore
@@ -25,10 +25,10 @@ func AddCache(r *http.Request, identifier string, data []byte) {
 	memcache.Add(c, item)
 
 	// Add it to the Datastore
-	cache := Cache{
-		Cached: data,
-	}
-	datastore.Put(c, datastore.NewKey(c, "Cache", identifier, 0, nil), &cache)
+	// cache := Cache{
+	// 	Cached: data,
+	// }
+	// datastore.Put(c, datastore.NewKey(c, "Cache", identifier, 0, nil), &cache)
 }
 
 /*
@@ -43,18 +43,18 @@ func GetCache(r *http.Request, identifier string) ([]byte, bool) {
 	}
 
 	// Check if the item is cached in the datastore
-	key := datastore.NewKey(c, "Cache", identifier, 0, nil)
-	var cache Cache
-	datastore.Get(c, key, &cache)
-	if string(cache.Cached) != "" {
-		// Add it to the memcache
-		AddCache(r, identifier, cache.Cached)
+	// key := datastore.NewKey(c, "Cache", identifier, 0, nil)
+	// var cache Cache
+	// datastore.Get(c, key, &cache)
+	// if string(cache.Cached) != "" {
+	// 	// Add it to the memcache
+	// 	AddCache(r, identifier, cache.Cached)
 
-		// Return the cached data
-		return cache.Cached, true
-	}
+	// 	// Return the cached data
+	// 	return cache.Cached, true
+	// }
 
-	// Not in cache :(
+	// // Not in cache :(
 	return nil, false
 }
 
@@ -68,8 +68,8 @@ func DeleteCache(r *http.Request, identifier string) {
 	memcache.Delete(c, identifier)
 
 	// Delete from the datastore
-	key := datastore.NewKey(c, "Cache", identifier, 0, nil)
-	var cache Cache
-	datastore.Get(c, key, &cache)
-	datastore.Delete(c, key)
+	// key := datastore.NewKey(c, "Cache", identifier, 0, nil)
+	// var cache Cache
+	// datastore.Get(c, key, &cache)
+	// datastore.Delete(c, key)
 }
