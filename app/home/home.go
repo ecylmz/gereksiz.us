@@ -15,7 +15,10 @@ import (
 	"strconv"
 	"fmt"
 	"library/cache"
+	"library/recaptcha"
+	"library/csrf"
 	"encoding/gob"
+	"time"
 )
 
 type Post struct {
@@ -28,13 +31,53 @@ type Counter struct {
 	Count int64
 }
 
+type PostSuggestion struct {
+	Username    string
+	Content     []byte
+	Timestamps  time.Time
+}
 
 func init() {
 	http.HandleFunc("/", root)
+	http.HandleFunc("/suggestion", suggestion)
 }
 
 func randInt(min int , max int) int {
 	return min + rand.Intn(max-min)
+}
+
+func suggestion(w http.ResponseWriter, r *http.Request) {
+	c := appengine.NewContext(r)
+	if r.FormValue("ContentString") != "" {
+		if recaptcha.Validate(r, r.RemoteAddr, r.FormValue("recaptcha_challenge_field"), r.FormValue("recaptcha_response_field")) == true {
+			if csrf.ValidateToken(r, r.FormValue("CSRFToken")) {
+				var post PostSuggestion
+				post.Username    = r.FormValue("Username")
+				post.Content = []byte(r.FormValue("ContentString"))
+				post.Timestamps = time.Now().Local()
+				datastore.Put(c, datastore.NewIncompleteKey(c, "PostSuggestion", nil), &post)
+			} else {
+				fmt.Println(w,"Bu İşlem İçin Yetkin Yok!")
+				return
+			}
+		} else {
+			fmt.Fprintln(w, "Captcha Kodu Yanlış! Lütfen Tekrar Dene!")
+			return
+		}
+	}
+
+
+	type PassedData struct {
+		CSRFToken string
+	}
+
+	passedData := PassedData{
+		CSRFToken: csrf.GetToken(r),
+	}
+
+	passedTemplate := new(bytes.Buffer)
+	template.Must(template.ParseFiles("templates/suggestion.html")).Execute(passedTemplate, passedData)
+	render.Render(w, r, passedTemplate)
 }
 
 func getPost(w http.ResponseWriter, r *http.Request, Seq int) Post {
@@ -82,13 +125,17 @@ func getCount(w http.ResponseWriter, r *http.Request) int64 {
 	key := datastore.NewKey(c, "Counter", "", 1, nil)
 	datastore.Get(c, key, &counter)
 
-	// Add Cache
-	mCount := new(bytes.Buffer)
-	encCount := gob.NewEncoder(mCount)
-	encCount.Encode(counter)
-	cache.AddCache(r, "Counter", mCount.Bytes())
+	if counter.Count != 0 {
+		// Add Cache
+		mCount := new(bytes.Buffer)
+		encCount := gob.NewEncoder(mCount)
+		encCount.Encode(counter)
+		cache.AddCache(r, "Counter", mCount.Bytes())
 
-	return counter.Count
+		return counter.Count
+	}
+
+	return 0
 }
 
 func root(w http.ResponseWriter, r *http.Request) {
@@ -100,7 +147,8 @@ func root(w http.ResponseWriter, r *http.Request) {
 		postSeq = arg
 	} else {
 		counter := getCount(w, r)
-		postSeq = randInt(1, int(counter))
+		fmt.Println(counter)
+		postSeq = randInt(1, int(counter)+1)
 	}
 
 	post := getPost(w, r, postSeq)
