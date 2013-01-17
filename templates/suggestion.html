@@ -1,0 +1,57 @@
+<div class="container">
+<script type="text/javascript">
+  $(document).ready(function () {
+    $("[rel=tooltip]").tooltip();
+  });
+</script>
+{{if .Info}}
+<div class="alert alert-info">
+  {{.Info}}
+</div>
+{{end}}
+  <form class="form-horizontal" method="POST">
+   <fieldset>
+     <legend>Yardım Etmek İyidir...</legend>
+    <div class="control-group">
+      <label class="control-label" for="Username">İsim</label>
+      <div class="controls">
+	<input type="text" class="input-xlarge" id="Username" name="Username">
+      </div>
+    </div>
+    <div class="control-group">
+      <label class="control-label" for="ContentString">İçerik (*)</label>
+      <div class="controls">
+	<textarea class="textarea" name="ContentString" id="ContentString"
+	  style="width:300px; height: 200px"
+	  placeholder="İçerik..."></textarea>
+      </div>
+    </div>
+      <div class="control-group">
+	<label class="control-label" for="captcha">Captcha (*)</label>
+	<div class="controls">
+         <script data-cfasync="false" type="text/javascript">
+         var RecaptchaOptions = {
+          theme : 'clean'
+        };
+        </script>
+	<script data-cfasync="false" type="text/javascript" 
+	src="https://www.google.com/recaptcha/api/challenge?k=6Ldmi9sSAAAAAIeJ6eA7xWavDkH-t8mBqLCG7Agw"></script>
+	<noscript>
+	 <iframe 
+	 src="https://www.google.com/recaptcha/api/noscript?k=6Ldmi9sSAAAAAIeJ6eA7xWavDkH-t8mBqLCG7Agw"
+	 height="300" width="500" frameborder="0"></iframe><br>
+         <textarea name="recaptcha_challenge_field" rows="3" cols="40">
+         </textarea>
+         <input type="hidden" name="recaptcha_response_field"
+         value="manual_challenge">
+       </noscript>
+     </div>
+     <p>(*) İşaretli Alanların Doldurulması Zorunludur!</p>
+      <div class="form-actions">
+	<button type="submit" class="btn btn-primary" ><i class="icon-comment 
+	icon-white"></i>Gönder</button>
+	<button class="btn">İptal</button>
+      </div>
+    </fieldset>
+  </form>
+</div>

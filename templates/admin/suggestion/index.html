@@ -1,0 +1,30 @@
+<table class="table table-striped">
+  <thead>
+    <tr>
+      <th>Username</th>
+      <th>Content</th>
+      <th>Timestamps</th>
+    </tr>
+  </thead>
+  <tbody>
+{{range .Suggestions}}
+    <tr>
+      <td>{{.Username}}</td>
+      <td>{{.ContentString}}</td>
+      <td>{{.Timestamps}}</td>
+      <td>  <a class="btn" href="/admin/post/suggestion/edit/{{.ID}}"><i 
+	class="icon-pencil"></i> Edit</a>
+      <td><form action="/admin/post/suggestion/delete/{{.ID}}" method="post">
+	  <input type="hidden" name="CSRFToken" value="{{$.CSRFToken}}">
+          <button class="btn btn-danger"><i class="icon-trash icon-white"></i> Delete</button>
+	</form></td>
+	<td><form action="/admin/post/suggestion/accept/{{.ID}}" method="post">
+	  <input type="hidden" name="CSRFToken" value="{{$.CSRFToken}}">
+	  <button class="btn btn-success"><i class="icon-ok icon-white"></i> 
+	Accept</button>
+	</form></td>
+      </td>
+    </tr>
+{{end}}
+  </tbody>
+</table>

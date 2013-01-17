@@ -1,0 +1,42 @@
+<form class="form-horizontal" 
+  action="/admin/post/suggestion/edit/{{.Suggestion.ID}}" method="POST">
+  <fieldset>
+    <legend>Edit Suggestion</legend>
+    <div class="control-group">
+      <label class="control-label" for="Username">Username</label>
+      <div class="controls">
+	<input type="text" class="input-xlarge" name="Username" 
+	value="{{.Suggestion.Username}}">
+      </div>
+    </div>
+
+    <div class="control-group">
+      <label class="control-label" for="ContentString">Content</label>
+      <div class="controls">
+	<textarea class="textarea" name="ContentString" id="ContentString" 
+	  style="width:300px; height: 
+	  200px">{{.Suggestion.ContentString}}</textarea>
+      </div>
+    </div>
+
+    <hr \>
+
+    <div class="form-actions">
+      <button type="submit" class="btn btn-primary">Update</button>
+      <button class="btn">Cancel</button>
+    </div>
+  </fieldset>
+  <input type="hidden" name="CSRFToken" value="{{$.CSRFToken}}">
+</form>
+<form action="/admin/post/suggestion/delete/{{.Suggestion.ID}}" method="post">
+  <input type="hidden" name="CSRFToken" value="{{$.CSRFToken}}">
+  <button class="btn btn-danger"><i class="icon-trash 
+      icon-white"></i> Delete</button>
+</form>
+<form action="/admin/post/suggestion/accept/{{.Suggestion.ID}}" method="post">
+  <input type="hidden" name="CSRFToken" value="{{$.CSRFToken}}">
+  <button class="btn btn-danger"><i 
+      class="icon-ok icon-white"></i> 
+    Accept</button>
+</form>
+
