@@ -1,4 +1,3 @@
-// Copyright 2013 Emre Can Yılmaz <ecylmz@ecylmz.com>.
 
 package home
 
@@ -16,7 +15,6 @@ import (
 	"fmt"
 	"library/cache"
 	"library/recaptcha"
-	"library/csrf"
 	"encoding/gob"
 	"time"
 )
@@ -48,31 +46,26 @@ func randInt(min int , max int) int {
 
 func suggestion(w http.ResponseWriter, r *http.Request) {
 	c := appengine.NewContext(r)
+	var info string;
 	if r.FormValue("ContentString") != "" {
 		if recaptcha.Validate(r, r.RemoteAddr, r.FormValue("recaptcha_challenge_field"), r.FormValue("recaptcha_response_field")) == true {
-			if csrf.ValidateToken(r, r.FormValue("CSRFToken")) {
 				var post PostSuggestion
 				post.Username    = r.FormValue("Username")
 				post.Content = []byte(r.FormValue("ContentString"))
 				post.Timestamps = time.Now().Local()
 				datastore.Put(c, datastore.NewIncompleteKey(c, "PostSuggestion", nil), &post)
-			} else {
-				fmt.Println(w,"Bu İşlem İçin Yetkin Yok!")
-				return
-			}
+				info = "Böylesine Muazzam Bir Bilgi Önerdiğin İçin Çok Teşekkür Ediyorum."
 		} else {
-			fmt.Fprintln(w, "Captcha Kodu Yanlış! Lütfen Tekrar Dene!")
-			return
+			info = "Captcha Kodu Yanlış! Lütfen Tekrar Dene!"
 		}
 	}
 
-
 	type PassedData struct {
-		CSRFToken string
+		Info string
 	}
 
 	passedData := PassedData{
-		CSRFToken: csrf.GetToken(r),
+		Info: info,
 	}
 
 	passedTemplate := new(bytes.Buffer)
